@@ -1,183 +1,168 @@
+// BankSystem_project.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
-// Global variables to store current account information
-int password1 = 0;
-long long Id1 = 0;
-double balance = 0.0;
-string name;
+const int MAX_ACCOUNTS = 100; // Maximum number of accounts
 
-// Maximum number of accounts allowed
-const int MAX_ACCOUNTS = 100;
+struct Account 
+{
+    long long id;
+    string name;
+    string password;
+    double balance;
+};
 
-// Arrays to store information for all accounts
-long long accountIds[MAX_ACCOUNTS];
-int accountPasswords[MAX_ACCOUNTS];
-double accountBalances[MAX_ACCOUNTS];
-string accountNames[MAX_ACCOUNTS];
+vector<Account> accounts; // Vector to store account information
 
-// Counter to keep track of the number of accounts created
-int accountCount = 0;
+// Function to save accounts to a file
+void saveAccountsToFile() 
+{
+    ofstream file("accounts.txt");
+    for (const auto& account : accounts) 
+    {
+        file << account.id << " " << account.name << " " << account.password << " " << account.balance << "\n";
+    }
+    file.close();
+}
+
+// Function to load accounts from a file
+void loadAccountsFromFile() 
+{
+    ifstream file("accounts.txt");
+    Account account;
+    while (file >> account.id >> account.name >> account.password >> account.balance)
+        {
+        accounts.push_back(account);
+        }
+    file.close();
+}
 
 // Function to create a new account
 void createAccount() 
 {
-    // Check if the maximum number of accounts has been reached
-    if (accountCount >= MAX_ACCOUNTS) 
+    if (accounts.size() >= MAX_ACCOUNTS)
     {
         cout << "Cannot create more accounts. Limit reached.\n";
-        return;
     }
 
-    // Prompt the user for account details
+    Account newAccount;
     cout << "Create account\n";
     cout << "Enter name: ";
-    cin >> accountNames[accountCount];
+    cin >> newAccount.name;
     cout << "Enter ID: ";
-    cin >> accountIds[accountCount];
+    cin >> newAccount.id;
     cout << "Enter password: ";
-    cin >> accountPasswords[accountCount];
+    cin >> newAccount.password;
+    newAccount.balance = 0.0;
 
-    // Set the initial balance to 0.0
-    accountBalances[accountCount] = 0.0;
-
-    // Increment the account count
-    accountCount++;
+    accounts.push_back(newAccount);
+    saveAccountsToFile();
     cout << "Account created successfully.\n";
 }
 
-// Function to deposit money into an account
-void depositMoney() 
-{
-    int password2;
-    long long Id2;
-    double amount;
+// Function to login
+int login() {
+    long long id;
+    string password;
 
-    // Prompt the user for account ID, password, and deposit amount
     cout << "Enter account ID: ";
-    cin >> Id2;
+    cin >> id;
     cout << "Enter password: ";
-    cin >> password2;
+    cin >> password;
+
+    for (size_t i = 0; i < accounts.size(); i++)
+    {
+        if (accounts[i].id == id && accounts[i].password == password) 
+        {
+            return i; // Return the index of the logged-in account
+        }
+    }
+
+    cout << "Invalid ID or password.\n";
+    return -1; // Return -1 if login fails
+}
+
+// Function to deposit money
+void depositMoney()
+{
+    int i = login();
+    if (i == -1) return;
+
+    double amount;
     cout << "Enter amount to deposit: ";
     cin >> amount;
 
-    // Search for the account using the provided ID and password
-    for (int i = 0; i < accountCount; i++) 
+    if (amount <= 0) 
     {
-        if (accountIds[i] == Id2 && accountPasswords[i] == password2) 
-        {
-            // Add the deposit amount to the current balance
-            accountBalances[i] += amount;
-            cout << "Deposit successful. New balance: " << accountBalances[i] << "\n";
-            return;
-        }
+        cout << "Invalid amount. Please enter a positive value.\n";
+        return;
     }
 
-    // If the account is not found or the password is incorrect
-    cout << "Invalid password or ID.\n";
+    accounts[i].balance += amount;
+    saveAccountsToFile();
+    cout << "Deposit successful. New balance: " << accounts[i].balance << "\n";
 }
 
-// Function to withdraw money from an account
+// Function to withdraw money
 void withdrawMoney() 
 {
-    long long Id2;
-    double amount;
+    int i = login();
+    if (i == -1) return;
 
-    // Prompt the user for account ID and withdrawal amount
-    cout << "Enter account ID: ";
-    cin >> Id2;
+    double amount;
     cout << "Enter amount to withdraw: ";
     cin >> amount;
 
-    // Search for the account using the provided ID
-    for (int i = 0; i < accountCount; i++) 
-    {
-        if (accountIds[i] == Id2) {
-            // Check if the account has sufficient balance
-            if (accountBalances[i] >= amount) 
-            {
-                // Deduct the withdrawal amount from the current balance
-                accountBalances[i] -= amount;
-                cout << "Withdrawal successful. New balance: " << accountBalances[i] << "\n";
-            }
-            else {
-                // If the balance is insufficient
-                cout << "Insufficient balance.\n";
-            }
-            return;
-        }
+    if (amount <= 0) {
+        cout << "Invalid amount. Please enter a positive value.\n";
+        return;
     }
 
-    // If the account is not found
-    cout << "Account not found.\n";
+    if (accounts[i].balance >= amount)
+    {
+        accounts[i].balance -= amount;
+        saveAccountsToFile();
+        cout << "Withdrawal successful. New balance: " << accounts[i].balance << "\n";
+    }
+    else
+    {
+        cout << "Insufficient balance.\n";
+    }
 }
 
-// Function to check the balance of an account
+// Function to check balance
 void checkBalance() 
 {
-    long long Id2;
+    int i = login();
+    if (i == -1) return;
 
-    // Prompt the user for account ID
-    cout << "Enter account ID: ";
-    cin >> Id2;
-
-    // Search for the account using the provided ID
-    for (int i = 0; i < accountCount; i++) 
-    {
-        if (accountIds[i] == Id2) 
-        {
-            // Display the current balance
-            cout << "Current balance: " << accountBalances[i] << "\n";
-            return;
-        }
-    }
-
-    // If the account is not found
-    cout << "Account not found.\n";
+    cout << "Current balance: " << accounts[i].balance << "\n";
 }
 
 // Function to close an account
 void closeAccount() 
 {
-    long long Id2;
+    int i = login();
+    if (i == -1) return;
 
-    // Prompt the user for account ID to close
-    cout << "Enter account ID to close: ";
-    cin >> Id2;
-
-    // Search for the account using the provided ID
-    for (int i = 0; i < accountCount; i++) 
-    {
-        if (accountIds[i] == Id2) 
-        {
-            // Shift all accounts after the closed account one position to the left
-            for (int j = i; j < accountCount - 1; j++) 
-            {
-                accountIds[j] = accountIds[j + 1];
-                accountPasswords[j] = accountPasswords[j + 1];
-                accountBalances[j] = accountBalances[j + 1];
-                accountNames[j] = accountNames[j + 1];
-            }
-
-            // Decrement the account count
-            accountCount--;
-            cout << "Account closed successfully.\n";
-            return;
-        }
-    }
-
-    // If the account is not found
-    cout << "Account not found.\n";
+    accounts.erase(accounts.begin() + i);
+    saveAccountsToFile();
+    cout << "Account closed successfully.\n";
 }
 
 // Main function
 int main() 
 {
+    loadAccountsFromFile();
     int choice;
 
-    // Display the main menu repeatedly
     while (true) 
     {
         cout << "\nBanking System Menu:\n";
@@ -190,8 +175,8 @@ int main()
         cout << "Enter your choice: ";
         cin >> choice;
 
-        // Handle the user's choice
-        switch (choice) {
+        switch (choice) 
+        {
         case 1:
             createAccount();
             break;
@@ -217,3 +202,14 @@ int main()
 
     return 0;
 }
+
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
+
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
