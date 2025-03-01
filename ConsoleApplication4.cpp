@@ -68,7 +68,8 @@ void createAccount()
 }
 
 // Function to login
-int login() {
+int login() 
+{
     long long id;
     string password;
 
@@ -93,7 +94,8 @@ int login() {
 void depositMoney()
 {
     int i = login();
-    if (i == -1) return;
+    if (i == -1)
+        return;
 
     double amount;
     cout << "Enter amount to deposit: ";
@@ -114,13 +116,15 @@ void depositMoney()
 void withdrawMoney() 
 {
     int i = login();
-    if (i == -1) return;
+    if (i == -1) 
+        return;
 
     double amount;
     cout << "Enter amount to withdraw: ";
     cin >> amount;
 
-    if (amount <= 0) {
+    if (amount <= 0) 
+    {
         cout << "Invalid amount. Please enter a positive value.\n";
         return;
     }
@@ -138,10 +142,11 @@ void withdrawMoney()
 }
 
 // Function to check balance
-void checkBalance() 
+void checkBalance()
 {
     int i = login();
-    if (i == -1) return;
+    if (i == -1) 
+        return;
 
     cout << "Current balance: " << accounts[i].balance << "\n";
 }
@@ -150,7 +155,8 @@ void checkBalance()
 void closeAccount() 
 {
     int i = login();
-    if (i == -1) return;
+    if (i == -1) 
+        return;
 
     accounts.erase(accounts.begin() + i);
     saveAccountsToFile();
